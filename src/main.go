@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/iqdavidh/libapi"
 	"net/http"
 )
 
@@ -10,23 +11,26 @@ var db = make(map[string]string)
 
 func setupRouter() *gin.Engine {
 	r := gin.Default()
-	// Ping test
-	r.GET("/ping", func(c *gin.Context) {
-		//data := libapi.DicJson{"ope": "ok"}
-		//builderJsonResponse.Success(c, data)
-		c.String(http.StatusOK, "pong")
 
+	r.GET("/pruebaget", func(ctx *gin.Context) {
+		data := libapi.DicJson{"ope": "pruebaget sin parametros"}
+		libapi.Success(ctx, data)
+	})
+
+	r.GET("/pruebaget_con_queryparams", func(ctx *gin.Context) {
+		dicParams := libapi.GetDataCleanFromQP(ctx, []string{"param1", "param2"})
+		libapi.Success(ctx, dicParams)
 	})
 
 	// Get user value
-	r.GET("/user/:name", func(c *gin.Context) {
-		user := c.Params.ByName("name")
+	r.GET("/user/:name", func(ctx *gin.Context) {
+		user := ctx.Params.ByName("name")
 		value, ok := db[user]
 		if ok {
-			//c.JSON(http.StatusOK, libapi.DicJson{"user": user, "value": value})
-			c.JSON(http.StatusOK, gin.H{"user": user, "value": value})
+			//ctx.JSON(http.StatusOK, libapi.DicJson{"user": user, "value": value})
+			ctx.JSON(http.StatusOK, gin.H{"user": user, "value": value})
 		} else {
-			c.JSON(http.StatusOK, gin.H{"user": user, "status": "no value"})
+			ctx.JSON(http.StatusOK, gin.H{"user": user, "status": "no value"})
 		}
 	})
 
@@ -60,7 +64,7 @@ func setupRouter() *gin.Engine {
 }
 
 func main() {
-	fmt.Println("Runing server 4")
+	fmt.Println("\n\n***************************************\nRuning server 4 ***********************\n***************************************")
 	r := setupRouter()
 	// Listen and Server in 0.0.0.0:8080
 	r.Run(":8082")
