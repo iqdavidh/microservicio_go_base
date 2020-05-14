@@ -40,9 +40,12 @@ func setupRouter() *gin.Engine {
 			return
 		}
 
+		token := ctx.Request.Header["Token"][0]
+
 		respuesta := libapi.DicJson{
-			"user":     dataPost.User,
-			"password": dataPost.Password,
+			"user":         dataPost.User,
+			"password":     dataPost.Password,
+			"header token": token,
 		}
 
 		libapi.Success(ctx, respuesta)
