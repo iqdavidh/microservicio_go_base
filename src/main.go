@@ -7,7 +7,10 @@ import (
 	"net/http"
 )
 
-var db = make(map[string]string)
+type PruebaPostData struct {
+	User     string `form:"user" json:"user" xml:"user"  binding:"required"`
+	Password string `form:"password" json:"password" xml:"password" binding:"required"`
+}
 
 func setupRouter() *gin.Engine {
 	r := gin.Default()
@@ -22,16 +25,27 @@ func setupRouter() *gin.Engine {
 		libapi.Success(ctx, dicParams)
 	})
 
-	// Get user value
-	r.GET("/user/:name", func(ctx *gin.Context) {
-		user := ctx.Params.ByName("name")
-		value, ok := db[user]
-		if ok {
-			//ctx.JSON(http.StatusOK, libapi.DicJson{"user": user, "value": value})
-			ctx.JSON(http.StatusOK, gin.H{"user": user, "value": value})
-		} else {
-			ctx.JSON(http.StatusOK, gin.H{"user": user, "status": "no value"})
+	r.GET("/pruebaget_conparams/:nombre", func(ctx *gin.Context) {
+		nombre := ctx.Params.ByName("nombre")
+		libapi.Success(ctx, libapi.DicJson{"nombre": nombre})
+	})
+
+	r.POST("/pruebapost", func(ctx *gin.Context) {
+
+		var dataPost PruebaPostData
+
+		err := ctx.ShouldBindJSON(&dataPost)
+		if err != nil {
+			libapi.Error(ctx, err.Error())
+			return
 		}
+
+		respuesta := libapi.DicJson{
+			"user":     dataPost.User,
+			"password": dataPost.Password,
+		}
+
+		libapi.Success(ctx, respuesta)
 	})
 
 	// Authorized group (uses gin.BasicAuth() middleware)
@@ -47,7 +61,6 @@ func setupRouter() *gin.Engine {
 	}))
 
 	authorized.POST("admin", func(c *gin.Context) {
-		user := c.MustGet(gin.AuthUserKey).(string)
 
 		// Parse JSON
 		var json struct {
@@ -55,7 +68,6 @@ func setupRouter() *gin.Engine {
 		}
 
 		if c.Bind(&json) == nil {
-			db[user] = json.Value
 			c.JSON(http.StatusOK, gin.H{"status": "ok"})
 		}
 	})
