@@ -10,33 +10,39 @@ import (
 	"testing"
 )
 
-func TestPruebaGet(t *testing.T) {
-	a := assert.New(t)
+func fnTestRequestGET(t2 *testing.T, a *assert.Assertions, queryParams string, group gin.HandlerFunc, codeRespuesta int) libapi.DicResp {
 	gin.SetMode(gin.TestMode)
 	r := gin.Default()
-
 	url := "/test"
-	queryParams := ""
-	r.GET(url, PruebaGetConQueryParams)
+	r.GET(url, group)
+
 	req, errReq := http.NewRequest(http.MethodGet, url+queryParams, nil)
 	if errReq != nil {
 		fmt.Println(errReq)
-		t.Fatalf("Couldn't create request: %v\n", errReq)
+		t2.Fatalf("Couldn't create request: %v\n", errReq)
 	}
+
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 
-	a.True(w.Code == 200, "No es 200")
+	a.True(w.Code == codeRespuesta, "No es el codigo Esperado")
 
 	respuesta, errorDecode := libapi.DecodeBodyResponse(w.Body)
 
 	a.True(errorDecode == nil, "Esperamos error nil "+fmt.Sprint(errorDecode))
 
 	if errorDecode != nil {
-		t.Fatalf(fmt.Sprint(errorDecode))
+		t2.Fatalf(fmt.Sprint(errorDecode))
 	}
 
-	a.True(respuesta.Success, "No es success")
+	return respuesta
+
+}
+
+func TestPruebaGet(t *testing.T) {
+	a := assert.New(t)
+	dicRespuesta := fnTestRequestGET(t, a, "", PruebaGet, 200)
+	a.True(dicRespuesta.Success, "Esperabamos success")
 
 }
 
