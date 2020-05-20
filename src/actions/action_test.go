@@ -1,6 +1,7 @@
 package actions
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	libapi "github.com/iqdavidh/libapigo"
 	"github.com/stretchr/testify/assert"
@@ -11,18 +12,31 @@ import (
 
 func TestPruebaGet(t *testing.T) {
 	a := assert.New(t)
+	gin.SetMode(gin.TestMode)
+	r := gin.Default()
 
-	writer := httptest.NewRecorder()
-	ctxTest, _ := gin.CreateTestContext(writer)
-	{
-		PruebaGet(ctxTest)
-		a.True(writer.Code == 200, "No es 200")
-
-		respuesta, error := libapi.DecodeBodyResponse(writer.Body)
-
-		a.True(error == nil, "Esperamos error nil")
-		a.True(respuesta.Success, "No es success")
+	url := "/test"
+	queryParams := ""
+	r.GET(url, PruebaGetConQueryParams)
+	req, errReq := http.NewRequest(http.MethodGet, url+queryParams, nil)
+	if errReq != nil {
+		fmt.Println(errReq)
+		t.Fatalf("Couldn't create request: %v\n", errReq)
 	}
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	a.True(w.Code == 200, "No es 200")
+
+	respuesta, errorDecode := libapi.DecodeBodyResponse(w.Body)
+
+	a.True(errorDecode == nil, "Esperamos error nil "+fmt.Sprint(errorDecode))
+
+	if errorDecode != nil {
+		t.Fatalf(fmt.Sprint(errorDecode))
+	}
+
+	a.True(respuesta.Success, "No es success")
 
 }
 
