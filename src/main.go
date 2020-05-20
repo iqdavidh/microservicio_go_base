@@ -1,9 +1,10 @@
 package main
 
 import (
+	"curso/microservice/src/actions"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/iqdavidh/libapi"
+	libapi "github.com/iqdavidh/libapigo"
 	"net/http"
 )
 
@@ -15,19 +16,17 @@ type PruebaPostData struct {
 func setupRouter() *gin.Engine {
 	r := gin.Default()
 
-	r.GET("/pruebaget", func(ctx *gin.Context) {
-		data := libapi.DicJson{"ope": "pruebaget sin parametros"}
-		libapi.Success(ctx, data)
-	})
+	r.GET("/pruebaget", actions.PruebaGet)
 
-	r.GET("/pruebaget_con_queryparams", func(ctx *gin.Context) {
-		dicParams := libapi.GetDataCleanFromQP(ctx, []string{"param1", "param2"})
-		libapi.Success(ctx, dicParams)
-	})
+	r.GET("/pruebaget_con_queryparams", actions.PruebaGetConQueryParams)
 
 	r.GET("/pruebaget_conparams/:nombre", func(ctx *gin.Context) {
 		nombre := ctx.Params.ByName("nombre")
-		libapi.Success(ctx, libapi.DicJson{"nombre": nombre})
+		libapi.RespuestaSuccess(ctx, libapi.DicJson{"nombre": nombre})
+	})
+
+	r.GET("/pruebaget_error", func(ctx *gin.Context) {
+		libapi.RespuestaError(ctx, "algo porque si")
 	})
 
 	r.POST("/pruebapost", func(ctx *gin.Context) {
@@ -36,19 +35,20 @@ func setupRouter() *gin.Engine {
 
 		err := ctx.ShouldBindJSON(&dataPost)
 		if err != nil {
-			libapi.Error(ctx, err.Error())
+			libapi.RespuestaError(ctx, err.Error())
 			return
 		}
 
-		token := ctx.Request.Header["Token"][0]
+		token := ctx.GetHeader("Token")
 
 		respuesta := libapi.DicJson{
 			"user":         dataPost.User,
 			"password":     dataPost.Password,
 			"header token": token,
+			"version":      1,
 		}
 
-		libapi.Success(ctx, respuesta)
+		libapi.RespuestaSuccess(ctx, respuesta)
 	})
 
 	// Authorized group (uses gin.BasicAuth() middleware)
