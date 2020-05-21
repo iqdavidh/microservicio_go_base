@@ -14,3 +14,29 @@ func PruebaGetConQueryParams(ctx *gin.Context) {
 	dicParams := libapi.GetDataCleanFromQP(ctx, []string{"param1", "param2"})
 	libapi.RespuestaSuccess(ctx, dicParams)
 }
+
+type PruebaPostData struct {
+	User     string `form:"user" json:"user" xml:"user"  binding:"required"`
+	Password string `form:"password" json:"password" xml:"password" binding:"required"`
+}
+
+func PruebaPost(ctx *gin.Context) {
+	var dataPost PruebaPostData
+
+	err := ctx.ShouldBindJSON(&dataPost)
+	if err != nil {
+		libapi.RespuestaError(ctx, err.Error())
+		return
+	}
+
+	token := ctx.GetHeader("Token")
+
+	respuesta := libapi.DicJson{
+		"user":         dataPost.User,
+		"password":     dataPost.Password,
+		"header token": token,
+		"version":      1,
+	}
+
+	libapi.RespuestaSuccess(ctx, respuesta)
+}

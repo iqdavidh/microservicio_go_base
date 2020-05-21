@@ -8,11 +8,6 @@ import (
 	"net/http"
 )
 
-type PruebaPostData struct {
-	User     string `form:"user" json:"user" xml:"user"  binding:"required"`
-	Password string `form:"password" json:"password" xml:"password" binding:"required"`
-}
-
 func setupRouter() *gin.Engine {
 	r := gin.Default()
 
@@ -29,27 +24,7 @@ func setupRouter() *gin.Engine {
 		libapi.RespuestaError(ctx, "algo porque si")
 	})
 
-	r.POST("/pruebapost", func(ctx *gin.Context) {
-
-		var dataPost PruebaPostData
-
-		err := ctx.ShouldBindJSON(&dataPost)
-		if err != nil {
-			libapi.RespuestaError(ctx, err.Error())
-			return
-		}
-
-		token := ctx.GetHeader("Token")
-
-		respuesta := libapi.DicJson{
-			"user":         dataPost.User,
-			"password":     dataPost.Password,
-			"header token": token,
-			"version":      1,
-		}
-
-		libapi.RespuestaSuccess(ctx, respuesta)
-	})
+	r.POST("/pruebapost", actions.PruebaPost)
 
 	// Authorized group (uses gin.BasicAuth() middleware)
 	// Same than:

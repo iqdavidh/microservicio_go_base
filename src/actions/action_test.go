@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -39,7 +40,41 @@ func fnTestRequestGET(t2 *testing.T, a *assert.Assertions, queryParams string, g
 
 }
 
+func fnTestRequestPOST(t2 *testing.T, a *assert.Assertions, queryParams string, body string, handlerRequest gin.HandlerFunc, codeRespuesta int, dicHeader map[string]string) libapi.DicResp {
+	gin.SetMode(gin.TestMode)
+	ro := gin.Default()
+	url := "/test"
+	ro.POST(url, handlerRequest)
+
+	req, errReq := http.NewRequest(http.MethodPost, url+queryParams, strings.NewReader(body))
+	if errReq != nil {
+		fmt.Println(errReq)
+		t2.Fatalf("Couldn't create request: %v\n", errReq)
+	}
+
+	for k := range dicHeader {
+		req.Header.Set(k, dicHeader[k])
+	}
+
+	w := httptest.NewRecorder()
+	ro.ServeHTTP(w, req)
+
+	a.True(w.Code == codeRespuesta, "No es el codigo Esperado")
+
+	respuesta, errorDecode := libapi.DecodeBodyResponse(w.Body)
+
+	a.True(errorDecode == nil, "Esperamos error nil "+fmt.Sprint(errorDecode))
+
+	if errorDecode != nil {
+		t2.Fatalf(fmt.Sprint(errorDecode))
+	}
+
+	return respuesta
+
+}
+
 func TestPruebaGet(t *testing.T) {
+
 	a := assert.New(t)
 	dicRespuesta := fnTestRequestGET(t, a, "", PruebaGet, 200)
 	a.True(dicRespuesta.Success, "Esperabamos success")
@@ -82,5 +117,15 @@ func TestPruebaGetConQueryParams(t *testing.T) {
 	if errorDecode == nil {
 		a.True(respuesta.Success, "No es success")
 	}
+
+}
+
+func TestPruebaPost(t *testing.T) {
+
+	a := assert.New(t)
+	body := `{"user":"u","password":"p"}`
+	dicHeader := map[string]string{"Token": "valort"}
+	dicRespuesta := fnTestRequestPOST(t, a, "", body, PruebaPost, 200, dicHeader)
+	a.True(dicRespuesta.Success, "Esperabamos success")
 
 }
