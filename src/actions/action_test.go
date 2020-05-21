@@ -50,3 +50,15 @@ func TestPruebaPost(t *testing.T) {
 	dicRespuesta := libapi.TestBasicRequestPOST(t, a, PruebaPost, configTest)
 	a.True(dicRespuesta.Success, "Esperabamos success")
 }
+
+func TestPruebaPost_conbodyincorrecto(t *testing.T) {
+	a := assert.New(t)
+
+	configTest := libapi.FactoryConfigTestBasic(map[string]string{"Token": "valort"})
+	configTest.Body = `no es un json`
+	configTest.CodeRespuesta = 200
+
+	dicRespuesta := libapi.TestBasicRequestPOST(t, a, PruebaPost, configTest)
+	a.False(dicRespuesta.Success, "Esperabamos False")
+	a.True(dicRespuesta.Msg != "", "Esperabamos un mensaje de error")
+}
