@@ -15,6 +15,11 @@ func PruebaGetConQueryParams(ctx *gin.Context) {
 	libapi.RespuestaSuccess(ctx, dicParams)
 }
 
+func PruebaGetConUrlParams(ctx *gin.Context) {
+	nombre := ctx.Params.ByName("nombre")
+	libapi.RespuestaSuccess(ctx, libapi.DicJson{"nombre": nombre})
+}
+
 type PruebaPostData struct {
 	User     string `form:"user" json:"user" xml:"user"  binding:"required"`
 	Password string `form:"password" json:"password" xml:"password" binding:"required"`

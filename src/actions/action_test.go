@@ -1,67 +1,52 @@
 package actions
 
 import (
-	"github.com/gin-gonic/gin"
 	libapi "github.com/iqdavidh/libapigo"
 	"github.com/stretchr/testify/assert"
-	"net/http"
-	"net/http/httptest"
 	"testing"
 )
 
 func TestPruebaGet(t *testing.T) {
-
 	a := assert.New(t)
-	dicRespuesta := libapi.TestBasicRequestGET(t, a, "", PruebaGet, 200, nil)
+	configTest := libapi.FactoryConfigTestBasic(nil)
+	dicRespuesta := libapi.TestBasicRequestGET(t, a, PruebaGet, configTest)
 	a.True(dicRespuesta.Success, "Esperabamos success")
-
 }
 
 func TestPruebaGetConQueryParams(t *testing.T) {
 	a := assert.New(t)
 
-	// Switch to test mode so you don't get such noisy output
-	gin.SetMode(gin.TestMode)
+	configTest := libapi.FactoryConfigTestBasic(nil)
+	configTest.QueryParams = "param1=valor_param1&param2=valor_param2"
 
-	// Setup your router, just like you did in your main function, and
-	// register your routes
-	r := gin.Default()
-	url := "/pruebaget_con_queryparams"
-	r.GET(url, PruebaGetConQueryParams)
+	dicRespuesta := libapi.TestBasicRequestGET(t, a, PruebaGetConQueryParams, configTest)
+	a.True(dicRespuesta.Success, "Esperabamos success")
 
-	// Create the mock request you'd like to test. Make sure the second argument
-	// here is the same as one of the routes you defined in the router setup
-	// block!
-	req, err := http.NewRequest(http.MethodGet, url+"?param1=valor_param1&param2=valor_param2", nil)
-	if err != nil {
-		t.Fatalf("Couldn't create request: %v\n", err)
-	}
-	// Create a response recorder so you can inspect the response
-	w := httptest.NewRecorder()
+	//Validacion especifica -----------
+	a.Equal("valor_param1", dicRespuesta.Data["param1"])
+	a.Equal("valor_param2", dicRespuesta.Data["param2"])
+}
 
-	// Perform the request
-	r.ServeHTTP(w, req)
+func TestPruebaGetConUrlParams(t *testing.T) {
+	a := assert.New(t)
 
-	// Check to see if the response was what you expected
-	if w.Code != http.StatusOK {
-		t.Fatalf("Expected to get status %d but instead got %d\n", http.StatusOK, w.Code)
-	}
+	configTest := libapi.FactoryConfigTestBasic(nil)
+	configTest.UrlParamsValor = "/bart"
+	configTest.UrlParamsPatron = "/:nombre"
 
-	respuesta, errorDecode := libapi.DecodeBodyResponse(w.Body)
+	dicRespuesta := libapi.TestBasicRequestGET(t, a, PruebaGetConUrlParams, configTest)
+	a.True(dicRespuesta.Success, "Esperabamos success")
 
-	a.True(errorDecode == nil, "Esperamos error nil")
-	if errorDecode == nil {
-		a.True(respuesta.Success, "No es success")
-	}
-
+	//Validacion especifica -----------
+	a.Equal("bart", dicRespuesta.Data["nombre"])
 }
 
 func TestPruebaPost(t *testing.T) {
-
 	a := assert.New(t)
-	body := `{"user":"u","password":"p"}`
-	dicHeader := map[string]string{"Token": "valort"}
-	dicRespuesta := libapi.TestBasicRequestPOST(t, a, "", body, PruebaPost, 200, dicHeader)
-	a.True(dicRespuesta.Success, "Esperabamos success")
 
+	configTest := libapi.FactoryConfigTestBasic(map[string]string{"Token": "valort"})
+	configTest.Body = `{"user":"u","password":"p"}`
+
+	dicRespuesta := libapi.TestBasicRequestPOST(t, a, PruebaPost, configTest)
+	a.True(dicRespuesta.Success, "Esperabamos success")
 }

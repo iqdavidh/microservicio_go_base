@@ -15,10 +15,7 @@ func setupRouter() *gin.Engine {
 
 	r.GET("/pruebaget_con_queryparams", actions.PruebaGetConQueryParams)
 
-	r.GET("/pruebaget_conparams/:nombre", func(ctx *gin.Context) {
-		nombre := ctx.Params.ByName("nombre")
-		libapi.RespuestaSuccess(ctx, libapi.DicJson{"nombre": nombre})
-	})
+	r.GET("/pruebaget_conparams/:nombre", actions.PruebaGetConUrlParams)
 
 	r.GET("/pruebaget_error", func(ctx *gin.Context) {
 		libapi.RespuestaError(ctx, "algo porque si")
